@@ -6,7 +6,7 @@
 /*   By: calide-n <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/27 07:58:49 by calide-n          #+#    #+#             */
-/*   Updated: 2021/05/27 16:35:17 by calide-n         ###   ########.fr       */
+/*   Updated: 2021/05/28 19:34:27 by calide-n         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,105 +14,71 @@
 
 t_byte	g_byte;
 
-void    handle_signal(int signum)
+void	handle_signal(int sig)
 {
-	if (g_byte.client_is_new)
-	{
-		if (signum == SIGUSR1)
-			g_byte.int_buffer[g_byte.index] = '0';
-		else
-			g_byte.int_buffer[g_byte.index] = '1';
-	}
+	if (sig == SIGUSR1)
+		singleton(0, 0);
 	else
+		singleton(0, 1);
+	if (g_byte.cpid > 0)
 	{
-		if (signum == SIGUSR1)
-			g_byte.char_buffer[g_byte.index] = '0';
-		else
-			g_byte.char_buffer[g_byte.index] = '1';
+		usleep(200);
+		kill(g_byte.cpid, SIGUSR1);
 	}
 	g_byte.index++;
 }
 
-char    get_byte()
+void	server_pid_prompt(void)
 {
-	int dnum;
-	int index;
+	int	pid;
 
-	index = 0;
-	dnum = 0;
-	while (index <= 7)
-	{
-		if (g_byte.char_buffer[index] == '1')
-			dnum = dnum | (128 >> index);
-		index++;
-	}
-	return (dnum);
+	pid = getpid();
+	ft_putstr("Server PID [");
+	ft_putnbr(pid);
+	ft_putstr("]\n");
 }
 
-void    ft_send_binary(int c)
+int	new_client(void)
 {
-	for (int i = 7; i >= 0; --i)
-	{   
-		if ((c & (1 << i)) == 0)
-			printf("0");
-		else
-			printf("1");
-	}   
-	printf("\n");
-}
+	int	pid;
+	int	byte;
 
-int	get_client_pid()
-{
-	int	client_id;
-	int	index;
-	char	tmp[19];
-
-	g_byte.index = 0;
-	client_id = 0;
-	pause();
-	index = 0;
-	while (index < 64)
-	{
-		client_id += (g_byte.int_buffer[index] - 48) << index;
-		index++;
-	}
-	return (client_id);
-}
-
-int main(int argc, char **argv)
-{
-	int	p_id;
-	int	count_byte = 0;
-	int	client_id;
-
-	g_byte.index = 0;
-	g_byte.cid = -1;
-	g_byte.client_is_new = 1;
-	p_id = getpid();
-	ft_putstr("The server's PID is [");
-	ft_putnbr(p_id);
-	ft_putstr("]\nWaiting for communication...\n");
-	signal(SIGUSR1, handle_signal);
-	signal(SIGUSR2, handle_signal);
-	client_id = get_client_pid();
-	g_byte.cid = client_id;
-	g_byte.index = 0;
-	printf("client_id = %d\n", client_id);
 	while (1)
 	{
-		if (g_byte.index == 8)
+		byte = singleton(1, 0);
+		if (byte == 0)
+			break ;
+		if (byte != -1)
+			pid = pid * 10 + byte - 48;
+	}
+	g_byte.cpid = pid;
+	while (1)
+	{
+		byte = singleton(1, 0);
+		if (byte == 0)
 		{
-			ft_putchar(get_byte());
-			if (ft_null(g_byte.char_buffer) == 1)
-			{
-				kill(client_id, SIGUSR2);
-				client_id = get_client_pid();
-				g_byte.cid = client_id;
-				printf("client_id = %d\n", client_id);
-			}
-			g_byte.char_buffer[8] = 0;
-			g_byte.index = 0;
+			ft_putchar('\n');
+			break ;
 		}
+		if (byte != -1)
+			ft_putchar(byte);
+	}
+	return (pid);
+}
+
+int	main(int argc, char **argv)
+{
+	int	server_pid;
+	int	client_pid;
+	int	byte;
+
+	server_pid_prompt();
+	signal(SIGUSR1, handle_signal);
+	signal(SIGUSR2, handle_signal);
+	while (1)
+	{
+		g_byte.cpid = 0;
+		new_client();
 	}
 	return (0);
 }

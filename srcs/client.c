@@ -6,7 +6,7 @@
 /*   By: calide-n <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/27 07:58:49 by calide-n          #+#    #+#             */
-/*   Updated: 2021/05/27 16:33:54 by calide-n         ###   ########.fr       */
+/*   Updated: 2021/05/28 19:31:29 by calide-n         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,65 +14,52 @@
 
 void	signal_handler(int	sig)
 {
+	static int	i = 0;
+
 	if (sig == SIGUSR1)
-		printf("\nBit sent to server !\n");
-	else
 	{
-		printf("\nMessage fully received by server !\nexiting...");
-		exit(0);
+		ft_putstr("\033[0;32m✓");
+		i++;
 	}
 }
 
-void	ft_send_binary(int c, int server_id)
+void	ft_send_byte(int c, int server_id, int wait)
 {
-	for (int i = 7; i >= 0; --i)
+	int	i;
+
+	i = 0;
+	while (i < 7)
 	{
 		if ((c & (1 << i)) == 0)
-		{
 			kill(server_id, SIGUSR1);
-			printf("0");
-		}
 		else
-		{
 			kill(server_id, SIGUSR2);
-			printf("1");
-		}
-		usleep(50);
+		if (wait == 0)
+			usleep(200);
+		else
+			pause();
+		i++;
 	}
-	printf("\n");
 }
 
 void	send_client_pid(int c, int server_id)
 {
-	int		index;
 	char	buffer[65];
+	int		index;
 
-	index = 63;
-	while (index >= 0)
+	index = 0;
+	while (c)
 	{
-		if (c & 1)
-			kill(server_id, SIGUSR1);
-			//buffer[index] = '1';
-		else
-			kill(server_id, SIGUSR2);
-			//buffer[index] = '0';
-		c >>= 1;
-		index--;
+		buffer[index] = c % 10 + 48;
+		c /= 10;
+		index++;
 	}
-	buffer[index] = 0;
-//	index = 0;
-//	while (index <= 63)
-//	{
-//		if (buffer[index] == '1')
-//			kill(server_id, SIGUSR1);
-//		else
-//			kill(server_id, SIGUSR2);
-//		index++;
-//	}
-	ft_send_binary(0, server_id);
+	while (index--)
+		ft_send_byte(buffer[index], server_id, 0);
+	ft_send_byte(0, server_id, 0);
 }
 
-int main(int argc, char **argv)
+int	main(int argc, char **argv)
 {
 	int	i;
 	int	server_id;
@@ -80,17 +67,12 @@ int main(int argc, char **argv)
 
 	i = 0;
 	signal(SIGUSR1, signal_handler);
-	signal(SIGUSR2, signal_handler);
 	client_id = getpid();
-	printf("client PID = %d\n", client_id);
 	server_id = atoi(argv[1]);
 	send_client_pid(client_id, server_id);
 	while (argv[2][i])
-	{
-		//		pause();
-		ft_putstr("Executing signal...\n");
-		ft_send_binary(argv[2][i++], server_id);
-	}
-	ft_send_binary(0, server_id);
+		ft_send_byte(argv[2][i++], server_id, 1);
+	ft_send_byte(0, server_id, 1);
+	ft_putchar('\n');
 	return (0);
 }

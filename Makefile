@@ -8,7 +8,8 @@ RM		= rm -rf
 CC		= clang
 
 CLIENT_SRCS_NAMES	=	client.c
-SERV_SRCS_NAMES		=	server.c
+SERV_SRCS_NAMES		=	server.c		\
+						singleton.c
 SRCS_NAMES			=	tools.c
 
 CLIENT_SRCS = $(addprefix $(SRCS_PATH), $(CLIENT_SRCS_NAMES))

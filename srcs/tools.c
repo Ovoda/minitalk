@@ -6,7 +6,7 @@
 /*   By: calide-n <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/27 14:19:52 by calide-n          #+#    #+#             */
-/*   Updated: 2021/05/27 14:44:26 by calide-n         ###   ########.fr       */
+/*   Updated: 2021/05/28 19:31:49 by calide-n         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,6 @@ int	ft_null(char *buffer)
 			return (0);
 	return (1);
 }
-
 
 void	ft_putstr(char *str)
 {
