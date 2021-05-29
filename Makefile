@@ -5,12 +5,13 @@ SRCS_PATH	= ./srcs/
 INCS	=	-I./includes
 
 RM		= rm -rf
-CC		= clang
+CC		= clang -Wall -Wextra -Werror
 
 CLIENT_SRCS_NAMES	=	client.c
 SERV_SRCS_NAMES		=	server.c		\
 						singleton.c
-SRCS_NAMES			=	tools.c
+SRCS_NAMES			=	tools.c			\
+						errors.c
 
 CLIENT_SRCS = $(addprefix $(SRCS_PATH), $(CLIENT_SRCS_NAMES))
 SERV_SRCS = $(addprefix $(SRCS_PATH), $(SERV_SRCS_NAMES))
@@ -41,4 +42,4 @@ fclean: clean
 
 re: clean all
 
-.PHONY: clean all fclean re
+.PHONY: all clean fclean re

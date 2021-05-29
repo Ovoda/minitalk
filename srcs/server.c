@@ -6,7 +6,7 @@
 /*   By: calide-n <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/27 07:58:49 by calide-n          #+#    #+#             */
-/*   Updated: 2021/05/28 19:34:27 by calide-n         ###   ########.fr       */
+/*   Updated: 2021/05/29 14:14:42 by calide-n         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,11 +20,6 @@ void	handle_signal(int sig)
 		singleton(0, 0);
 	else
 		singleton(0, 1);
-	if (g_byte.cpid > 0)
-	{
-		usleep(200);
-		kill(g_byte.cpid, SIGUSR1);
-	}
 	g_byte.index++;
 }
 
@@ -43,6 +38,7 @@ int	new_client(void)
 	int	pid;
 	int	byte;
 
+	pid = 0;
 	while (1)
 	{
 		byte = singleton(1, 0);
@@ -51,7 +47,6 @@ int	new_client(void)
 		if (byte != -1)
 			pid = pid * 10 + byte - 48;
 	}
-	g_byte.cpid = pid;
 	while (1)
 	{
 		byte = singleton(1, 0);
@@ -63,15 +58,14 @@ int	new_client(void)
 		if (byte != -1)
 			ft_putchar(byte);
 	}
+	kill(pid, SIGUSR1);
 	return (pid);
 }
 
 int	main(int argc, char **argv)
 {
-	int	server_pid;
-	int	client_pid;
-	int	byte;
-
+	if (check_params_server(argc, argv) == -1)
+		return (0);
 	server_pid_prompt();
 	signal(SIGUSR1, handle_signal);
 	signal(SIGUSR2, handle_signal);
